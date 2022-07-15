@@ -1,12 +1,11 @@
 import csv
-
 import requests
 from bs4 import BeautifulSoup
-inport csv
 
 URL = 'https://auto.ru/cars/wanderer/all/'
 HEADERS = {'User-Agent': 'Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/102.0.5005.134 YaBrowser/22.7.0.1841 Yowser/2.5 Safari/537.36' , 'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9'}
 HOST = 'https://auto.ru'
+FILE = 'cars.csv'
 
 def get_html(url,params=None):
     r = requests.get(url, headers=HEADERS, params=params)
@@ -38,15 +37,14 @@ def get_content (html):
     return cars
 
 def save_file(items, path):
-    with oper(path, 'w', newline='') as file:
+    with open(path, 'w', encoding="utf-8", newline='') as file:
         writer = csv.writer(file, delimiter=';')
-        writer.writerow(['Марка', 'Ссылка', 'Цена', 'Пробег', 'Город'])
+        writer.writerow(['Марка', 'Ссылка', 'Город'])
         for item in items:
-            writer.writerow(item['title'],item['link'],item['stoim'],item['probeg'],item['gorod'])
+            writer.writerow([item['title'], item['link'], item['gorod']])
 
 def parse():
     html = get_html(URL)
-    html.encoding = 'utf-8'
     if html.status_code == 200:
         cars = []
         pages_count = get_pages_count(html.text)
@@ -54,6 +52,7 @@ def parse():
             print ('Парсинг страницы '+ str(page) + ' из' + str(pages_count) + ' pages_count ...')
             html = get_html(URL, params={'page': page})
             cars.extend(get_content(html.text))
+        save_file(cars, FILE)
             #cars = get_content(html.text)
         print("Получено " + str(len(cars)) + " автомобилей" )
     else:
